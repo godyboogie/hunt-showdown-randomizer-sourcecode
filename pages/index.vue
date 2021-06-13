@@ -1,63 +1,128 @@
 <template>
-  <div class="container">
-    <div>
-      <Logo />
-      <h1 class="title">Hunt-randomizer</h1>
-      <div class="links">
-        <a
-          href="https://nuxtjs.org/"
-          target="_blank"
-          rel="noopener noreferrer"
-          class="button--green"
-        >
-          Documentation
-        </a>
-        <a
-          href="https://github.com/nuxt/nuxt.js"
-          target="_blank"
-          rel="noopener noreferrer"
-          class="button--grey"
-        >
-          GitHub
-        </a>
+  <div class="wrapper">
+    <div class="settings">
+      <div class="text">
+        <h1>Hunt: Showdown Randomizer</h1>
+        <p>
+          Hello and welcome to Hunt: Showdown Randomizer! A simple webpage to
+          generate a random loadout. You will most likely hate the loadout,
+          that's why it's fun!
+        </p>
+      </div>
+      <div class="inputContainer">
+        <label class="fakeCheckbox">
+          <input v-model="isQuartermaster" type="checkbox" />
+          <span class="check"></span>
+          I have quartermaster
+        </label>
+      </div>
+
+      <div class="inputContainer">
+        <button @click="randomize">Randomize my loadout !</button>
+      </div>
+    </div>
+
+    <div class="loadoutContainer">
+      <div v-for="gun in filteredGuns" :key="gun.name">
+        <h3>{{ gun.name }}</h3>
+        <img :src="'images/guns/' + gun.fileName" :alt="gun.name" />
       </div>
     </div>
   </div>
 </template>
 
 <script>
-export default {}
+import guns from '@/models/guns.js'
+
+export default {
+  data() {
+    return {
+      guns,
+      filteredGuns: [],
+      isQuartermaster: false,
+    }
+  },
+  mounted() {
+    this.filterGuns()
+  },
+  methods: {
+    randomize() {
+      this.filterGuns()
+    },
+    filterGuns() {
+      this.filteredGuns = []
+      let firstGun = {}
+      let remainingGuns = []
+
+      if (this.isQuartermaster) {
+        const availableGuns = this.guns.filter((gun) => gun.numberOfSlots !== 1)
+        firstGun =
+          availableGuns[Math.floor(Math.random() * availableGuns.length)]
+
+        remainingGuns = this.guns.filter(
+          (gun) =>
+            gun.numberOfSlots === 5 - firstGun.numberOfSlots &&
+            gun.name !== firstGun.name
+        )
+      } else {
+        firstGun = this.guns[Math.floor(Math.random() * this.guns.length)]
+        remainingGuns = this.guns.filter(
+          (gun) =>
+            gun.numberOfSlots <= 4 - firstGun.numberOfSlots &&
+            gun.name !== firstGun.name
+        )
+      }
+
+      this.filteredGuns = [
+        firstGun,
+        remainingGuns[Math.floor(Math.random() * remainingGuns.length)],
+      ]
+    },
+  },
+}
 </script>
 
-<style>
-.container {
-  margin: 0 auto;
-  min-height: 100vh;
-  display: flex;
-  justify-content: center;
+<style lang="scss" scoped>
+.wrapper {
+  display: grid;
+  grid-template-columns: 50% 50%;
+  gap: 1rem;
   align-items: center;
-  text-align: center;
-}
+  position: relative;
 
-.title {
-  font-family: 'Quicksand', 'Source Sans Pro', -apple-system, BlinkMacSystemFont,
-    'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-  display: block;
-  font-weight: 300;
-  font-size: 100px;
-  color: #35495e;
-  letter-spacing: 1px;
-}
+  &::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: -1;
+    background: linear-gradient(
+      90deg,
+      rgba(9, 20, 28, 0) 0%,
+      rgba(9, 20, 28, 0.75) 50%,
+      rgba(9, 20, 28, 0) 100%
+    );
+  }
 
-.subtitle {
-  font-weight: 300;
-  font-size: 42px;
-  color: #526488;
-  word-spacing: 5px;
-  padding-bottom: 15px;
-}
-
-.links {
-  padding-top: 15px;
+  &::after {
+    --offset: 2rem;
+    content: '';
+    position: absolute;
+    top: 0;
+    left: calc(var(--offset) * -1);
+    height: 100%;
+    width: calc(100% + var(--offset) * 2);
+    z-index: -1;
+    background: linear-gradient(
+      90deg,
+      rgba(9, 9, 9, 0) 0%,
+      rgba(9, 9, 9, 0.35) 2rem,
+      rgba(9, 9, 9, 0.5) 50%,
+      rgba(9, 9, 9, 0.35) calc(100% - 2rem),
+      rgba(9, 9, 9, 0) 100%
+    );
+  }
 }
 </style>
